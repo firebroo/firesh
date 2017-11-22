@@ -17,6 +17,7 @@
 #include <errno.h>
 #include "prompt.h"
 
+char prompt[100];
 int sigintflag = 0;
 #ifndef bool
 #   define bool           unsigned char
@@ -32,10 +33,52 @@ int sigintflag = 0;
 
 static void cb_linehandler (char *);
 static void sighandler (int);
+char *build_cmds[] = {"cd"};
+static bool is_build_cmd(char **cmd);
+static void exec_build_cmd(char **cmd);
+void cmd_error(char **cmd, char* error);
+static void reset_readline_callback();
+
 
 int running;
 int sigwinch_received;
 
+static bool 
+is_build_cmd(char **cmd) 
+{
+    int len = sizeof(build_cmds) / sizeof(char*);
+    int i;
+    for(i = 0; i < len; i++) {
+        if (!strcmp(build_cmds[i], cmd[0])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void exec_build_cmd(char **cmd) {
+    if (cmd[1] == NULL) { /*cd*/
+        return;
+    }
+    if(cmd[2] != NULL) {
+        printf("firesh: %s: %s", cmd, "too many arguments");
+        return;
+    }
+    if (!strcmp(cmd[0], "cd")) {
+        if (!strcmp(cmd[1], "~")) {
+            /*to do*/
+            return;
+        }
+        if(chdir(cmd[1])!= 0) {
+            printf("firesh: %s: %s", cmd, "too many arguments");
+            return;
+        } else {
+            type_prompt(prompt); /*change dir, reset prompt*/
+            reset_readline_callback();
+            return;
+        }
+    }
+}
 
 /* Handle SIGWINCH and window size changes when readline is not active and
    reading a character. */
@@ -45,12 +88,19 @@ sighandler (int sig)
         sigwinch_received = 1;
 }
 
+static void
+reset_readline_callback()
+{
+    rl_callback_handler_remove ();
+    rl_callback_handler_install (prompt, cb_linehandler);
+}
+
 void 
 siginthandle(int signo)
 {
     printf("%s\n", "^C");
     fflush(stdout);
-    sigintflag = 1;
+    reset_readline_callback();
 }
 
 char **
@@ -58,7 +108,7 @@ str_to_strptr(char *str)
 {
         char a[100];
         int i = 0, j = 0;
-        char** ptr = (char **)malloc(10 * sizeof(char*)); 
+        char** ptr = (char **)malloc(100 * sizeof(char*)); 
         if (str && *str) {
             while (*str) {
                     if (*str != ' ') {
@@ -91,9 +141,9 @@ free_ptrstr(char **ptrstr)
 }
 
 void
-cmd_error(char **cmd)
+cmd_error(char **cmd, char* error)
 {
-        printf("firesh: %s: command not found\n", cmd[0]);
+        printf("firesh: %s: %s\n", cmd[0], error);
         free_ptrstr(cmd);
         exit(0);
 }
@@ -126,14 +176,9 @@ trim(char *data, char c)
 static void
 cb_linehandler (char *line)
 {
-        if (sigintflag == 1) {
-            sigintflag = 0;
-            goto end;
-        }
         int status;
         /* Can use ^D (stty eof) or `exit' to exit. */
-        if (line == NULL || strcmp (line, "exit") == 0)
-        {
+        if (line == NULL || strcmp (line, "exit") == 0) {
                 if (line == 0)
                         printf ("\n");
                 printf ("exit\n");
@@ -143,24 +188,27 @@ cb_linehandler (char *line)
                 rl_callback_handler_remove ();
 
                 running = 0;
-        } else
-        {
+        } else {
                 if (*line) {
                     add_history (line);
                     int pid;
-                    pid = fork();
-                    if (pid < 0) {
-                            printf("error in fork!");
-                    } else if (pid == 0) {
-                            char **cmd = str_to_strptr(trim(line, ' '));
+                    char **cmd = str_to_strptr(trim(line, ' '));
+                    if (is_build_cmd(cmd)) {
+                        exec_build_cmd(cmd);
+                    } else {
+                        pid = fork();
+                        if (pid < 0) {
+                                printf("error in fork!");
+                        } else if (pid == 0) {
                             int cmd_ret = execvp(cmd[0], cmd);
                             if (cmd_ret == -1) {
-                                    cmd_error(cmd);
+                                    cmd_error(cmd, "command not found");
                             } else {
                                     exit(0);
                             }
-                    } else {
-                            waitpid(pid, &status, 0);
+                        } else {
+                                waitpid(pid, &status, 0);
+                        }
                     }
                 }
                 goto end;
@@ -187,7 +235,7 @@ check_argv (int argc, char *argv[])
                                 cmd = str_to_strptr(trim(optarg, ' '));
                                 int cmd_ret = execvp(cmd[0], cmd);
                                 if (cmd_ret == -1) {
-                                        cmd_error(cmd);
+                                        cmd_error(cmd, "command not found");
                                 }
                         default:
                                 goto end;
@@ -212,9 +260,8 @@ main (int c, char **v)
         signal (SIGWINCH, sighandler);
         signal(SIGINT, siginthandle);
         /* Install the line handler. */
-        check_argv(c, v);
-        char prompt[100];
         type_prompt(prompt);
+        check_argv(c, v);
         rl_callback_handler_install (prompt, cb_linehandler);
 
         /* Enter a simple event loop.  This waits until something is available
