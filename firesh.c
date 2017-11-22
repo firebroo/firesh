@@ -17,6 +17,7 @@
 #include <errno.h>
 #include "prompt.h"
 
+int sigintflag = 0;
 #ifndef bool
 #   define bool           unsigned char
 #endif
@@ -35,6 +36,7 @@ static void sighandler (int);
 int running;
 int sigwinch_received;
 
+
 /* Handle SIGWINCH and window size changes when readline is not active and
    reading a character. */
 static void
@@ -43,25 +45,37 @@ sighandler (int sig)
         sigwinch_received = 1;
 }
 
+void 
+siginthandle(int signo)
+{
+    printf("%s\n", "^C");
+    fflush(stdout);
+    sigintflag = 1;
+}
+
 char **
 str_to_strptr(char *str)
 {
         char a[100];
         int i = 0, j = 0;
         char** ptr = (char **)malloc(10 * sizeof(char*)); 
-        while (*str) {
-                if (*str != ' ') {
-                        a[j++] = *str;
-                } else {
-                        a[j] = '\0';
-                        ptr[i++] = strdup(a);
-                        j = 0;
-                }
-                str++;
+        if (str && *str) {
+            while (*str) {
+                    if (*str != ' ') {
+                            a[j++] = *str;
+                    } else {
+                            a[j] = '\0';
+                            ptr[i++] = strdup(a);
+                            j = 0;
+                    }
+                    str++;
+            }
+            a[j] = '\0';
+            ptr[i] = strdup(a);
+            ptr[++i] = NULL;
+        } else {
+            return NULL;
         }
-        a[j] = '\0';
-        ptr[i] = strdup(a);
-        ptr[++i] = NULL;
         free(ptr[i]);
         return ptr;
 }
@@ -112,6 +126,10 @@ trim(char *data, char c)
 static void
 cb_linehandler (char *line)
 {
+        if (sigintflag == 1) {
+            sigintflag = 0;
+            goto end;
+        }
         int status;
         /* Can use ^D (stty eof) or `exit' to exit. */
         if (line == NULL || strcmp (line, "exit") == 0)
@@ -125,28 +143,30 @@ cb_linehandler (char *line)
                 rl_callback_handler_remove ();
 
                 running = 0;
-        }
-        else
+        } else
         {
-                if (*line)
-                        add_history (line);
-                int pid;
-                pid = fork();
-                if (pid < 0) {
-                        printf("error in fork!");
-                } else if (pid == 0) {
-                        char **cmd = str_to_strptr(trim(line, ' '));
-                        int cmd_ret = execvp(cmd[0], cmd);
-                        if (cmd_ret == -1) {
-                                cmd_error(cmd);
-                        } else {
-                                exit(0);
-                        }
-                } else {
-                        waitpid(pid, &status, 0);
+                if (*line) {
+                    add_history (line);
+                    int pid;
+                    pid = fork();
+                    if (pid < 0) {
+                            printf("error in fork!");
+                    } else if (pid == 0) {
+                            char **cmd = str_to_strptr(trim(line, ' '));
+                            int cmd_ret = execvp(cmd[0], cmd);
+                            if (cmd_ret == -1) {
+                                    cmd_error(cmd);
+                            } else {
+                                    exit(0);
+                            }
+                    } else {
+                            waitpid(pid, &status, 0);
+                    }
                 }
+                goto end;
         }
-        free(line);
+end:
+    free(line);
 }
 
 
@@ -190,7 +210,7 @@ main (int c, char **v)
         /* Handle window size changes when readline is not active and reading
            characters. */
         signal (SIGWINCH, sighandler);
-
+        signal(SIGINT, siginthandle);
         /* Install the line handler. */
         check_argv(c, v);
         char prompt[100];

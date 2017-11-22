@@ -7,7 +7,7 @@ OBJS = $(SRCS:.c=.o)
 INSTALLDIR = /bin/
 
 CC = cc
-CFLAGS = -O2 -lreadline
+CFLAGS = -g -lreadline
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
