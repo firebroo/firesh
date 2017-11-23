@@ -36,3 +36,4 @@ str_to_strptr(char *str, char **strptr)
 
     return strptr;
 }
+

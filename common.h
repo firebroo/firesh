@@ -5,6 +5,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <errno.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+#include <sys/types.h>
+#include <sys/select.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 #ifndef bool
 #   define bool           unsigned char
