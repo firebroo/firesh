@@ -1,6 +1,6 @@
 TARGET = firesh
 
-SRCS = firesh.c prompt.c
+SRCS = common.c firesh.c prompt.c
 
 OBJS = $(SRCS:.c=.o)
 
