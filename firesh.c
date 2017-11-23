@@ -15,7 +15,6 @@ static void __exec_buildin_cmd__(char **cmd);
 static void __cmd_error__(char **cmd, char* error);
 static void __reset_readline_callback__();
 static void __free_ptrstr__(char **ptrstr);
-static char** __str_to_strptr__(char *str);
 
 
 static bool 
@@ -83,31 +82,6 @@ __reset_readline_callback__()
     rl_callback_handler_install (prompt, __cb_linehandler__);
 }
 
-static char **
-__str_to_strptr__(char *str)
-{
-    char a[100];
-    int i = 0, j = 0;
-    char** ptr = (char **)malloc(100 * sizeof(char*)); 
-    if (str && *str) {
-        while (*str) {
-            if (*str != ' ') {
-                a[j++] = *str;
-            } else {
-                a[j] = '\0';
-                ptr[i++] = strdup(a);
-                j = 0;
-            }
-            str++;
-        }
-        a[j] = '\0';
-        ptr[i] = strdup(a);
-        ptr[++i] = NULL;
-    } else {
-        return NULL;
-    }
-    return ptr;
-}
 
 void
 __free_ptrstr__(char **ptrstr)
@@ -116,7 +90,6 @@ __free_ptrstr__(char **ptrstr)
     for(i = 0; ptrstr[i] != NULL; i++) {
         free(ptrstr[i]);
     }
-    free(ptrstr);
 }
 
 void
@@ -150,7 +123,8 @@ __cb_linehandler__ (char *line)
     } else {
         if (*line) {
             add_history (line);
-            char **cmd = __str_to_strptr__(trim(line, ' '));
+            char *strptr[100];
+            char **cmd = str_to_strptr(trim(line, ' '), strptr);
             if (__is_buildin_cmd__(cmd)) {
                 __exec_buildin_cmd__(cmd);
             } else {
@@ -182,6 +156,7 @@ check_argv (int argc, char *argv[])
     int    opt;
     int    cmd_ret;
     char **cmd = NULL;
+    char *strptr[100];
 
     if (argc < 2) {
         goto end;
@@ -191,7 +166,7 @@ check_argv (int argc, char *argv[])
         switch(opt) {
 
         case 'c':
-            cmd = __str_to_strptr__(trim(optarg, ' '));
+            cmd = str_to_strptr(trim(optarg, ' '), strptr);
             int cmd_ret = execvp(cmd[0], cmd);
             if (cmd_ret == -1) {
                 __cmd_error__(cmd, "command not found");

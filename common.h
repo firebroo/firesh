@@ -19,3 +19,4 @@
 #endif
 
 char *trim(char *data, char c);
+char **str_to_strptr(char *str, char **strptr);

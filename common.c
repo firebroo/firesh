@@ -18,3 +18,21 @@ trim(char *data, char c)
 
     return data;
 }
+
+char **
+str_to_strptr(char *str, char **strptr)
+{
+    char *p;
+    char *buff;
+    buff = str;
+
+    p = strsep(&buff, " ");
+    int i = 0;
+    while(p) {
+        strptr[i++] = strdup(p);
+        p = strsep(&buff, " "); 
+    }
+    strptr[i] = NULL;
+
+    return strptr;
+}
