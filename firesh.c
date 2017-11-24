@@ -7,7 +7,7 @@
 extern char prompt[100];
 extern int sigwinch_received;
 extern int running;
-
+char split[] = {0x20, 0x09, '\0'};
 
 
 /* Callback function called for each line when accept-line executed, EOF

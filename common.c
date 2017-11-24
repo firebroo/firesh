@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern char split[];
+
 char *
 trim(char *data, char c)
 {
@@ -26,9 +28,9 @@ str_to_strptr(char *str, char **strptr)
     char *buff;
     buff = str;
 
-    p = strsep(&buff, " ");
+    p = strsep(&buff, split);
     int i = 0;
-    while(p) {
+    while(p && *p) {
         strptr[i++] = strdup(p);
         p = strsep(&buff, " "); 
     }
