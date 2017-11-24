@@ -1,8 +1,9 @@
 #include "common.h"
 #include "buildin_cmd.h"
 #include "complet.h"
+#include "all_cmds.h"
 
-extern char *build_cmds[];
+extern char *all_cmds[];
 
 /* Tell the GNU Readline library how to complete.  We want to try to complete
    on command names if this is the first word in the line, or on filenames
@@ -57,7 +58,7 @@ command_generator (const char *text, int state)
     }
 
   /* Return the next name which partially matches from the command list. */
-  while((name = build_cmds[list_index]) != NULL) {
+  while((name = all_cmds[list_index]) != NULL) {
     list_index++;
 
       if (strncmp (name, text, len) == 0)
