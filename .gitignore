@@ -1,2 +1,4 @@
 *.o
 firesh
+a.out
+test.c

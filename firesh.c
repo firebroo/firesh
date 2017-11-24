@@ -3,6 +3,7 @@
 #include "buildin_cmd.h"
 #include "common.h"
 #include "parse.h"
+#include "complet.h"
 
 extern char prompt[100];
 extern int sigwinch_received;
@@ -54,6 +55,7 @@ main(int argc, char **argv)
     check_argv(argc, argv);
     setlocale(LC_ALL, "");
 
+    initialize_readline();
     signal(SIGWINCH, sighandler);
     signal(SIGINT, sighandler);
     /* Install the line handler. */
