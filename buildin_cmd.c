@@ -5,7 +5,7 @@
 
 extern int running;
 extern struct passwd *pwd;
-static char *build_cmds[] = {"cd", "exit", "pwd"};
+char *build_cmds[] = {"cd", "exit", "pwd", NULL};
 static void __exec_exit_cmd__(char **cmd);
 static void __exec_cd_cmd__(char **cmd);
 static void __exec_pwd_cmd__(char **cmd);
@@ -15,7 +15,7 @@ is_buildin_cmd(char **cmd)
 {
     int i;
     int len = sizeof(build_cmds) / sizeof(char*);
-    for(i = 0; i < len; i++) {
+    for(i = 0; i < len - 1; i++) {
         if (!strcmp(build_cmds[i], cmd[0])) {
             return true;
         }
@@ -37,8 +37,11 @@ __exec_exit_cmd__(char **cmd)
 static void
 __exec_pwd_cmd__(char **cmd)
 {
-    char buf[1024];
-    getcwd(buf, 1024);
+    char buf[1024], *s;
+    s = getcwd(buf, sizeof(buf) - 1);
+    if (s == 0) {
+        printf("pwd: error\n");
+    }  
     printf("%s\n", buf);
 }
 
