@@ -10,9 +10,8 @@ make
 * 内置命令(cd, pwd, exit)
 * 执行单条命令, e.g. ./firesh -c "ls -la"
 * 自动补全命令
+* 后台运行
 
 ### todo
-* 后台运行
 * IO重定向
 * 管道运行
-
