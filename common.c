@@ -1,6 +1,7 @@
 #include "common.h"
 
 extern char split[];
+extern int BGJOB;
 
 char *
 trim(char *data, char c)
@@ -34,8 +35,13 @@ str_to_strptr(char *str, char **strptr)
         strptr[i++] = strdup(p);
         p = strsep(&buff, " "); 
     }
-    strptr[i] = NULL;
+    if (strcmp("&", strptr[i-1]) == 0) {
+        BGJOB = 1;
+        free(strptr[i-1]);
+        strptr[i-1] = NULL;
+    } else {
+        strptr[i] = NULL;
+    }
 
     return strptr;
 }
-

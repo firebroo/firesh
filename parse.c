@@ -6,6 +6,7 @@ int sigintflag = 0;
 int running;
 int sigwinch_received;
 extern char prompt[100];
+int BGJOB = 0;
 
 /* Handle SIGWINCH and window size changes when readline is not active and
    reading a character. */
@@ -71,22 +72,50 @@ cb_linehandler (char *line)
             add_history (line);
             char *strptr[100];
             char **cmd = str_to_strptr(trim(line, ' '), strptr);
-            if (is_buildin_cmd(cmd)) {
-                exec_buildin_cmd(cmd);
-                __free_ptrstr__(cmd);
-            } else {
+            if (BGJOB == 1) {                /*daemon*/
+                BGJOB = 0;
                 int pid;
                 pid = fork();
                 if (pid < 0) {
                     printf("error in fork!\n");
-                } else if (pid == 0) {
-                    if (execvp(cmd[0], cmd) == -1) {
-                        __cmd_error__(cmd, "command not found");
-                    } else {
+                }
+                if(pid == 0) { /*children*/
+                    if (is_buildin_cmd(cmd)) {
+                        exec_buildin_cmd(cmd);
+                        __free_ptrstr__(cmd);
+                        printf("[1]: done\n");
                         exit(0);
+                    } else {
+                        if (execvp(cmd[0], cmd) == -1) {
+                            __cmd_error__(cmd, "command not found");
+                        } else {
+                            exit(0);
+                        }
                     }
                 } else {
-                    waitpid(pid, &status, 0);
+                    printf("[1]: %d\n", pid);
+                    __free_ptrstr__(cmd);
+                }
+            } else {
+                if (is_buildin_cmd(cmd)) {
+                    exec_buildin_cmd(cmd);
+                    __free_ptrstr__(cmd);
+                } else {
+                    int pid;
+                    pid = fork();
+                    if (pid < 0) {
+                        printf("error in fork!\n");
+                    }
+                    if (pid == 0) {  /*children*/
+                        if (execvp(cmd[0], cmd) == -1) {
+                            __cmd_error__(cmd, "command not found");
+                        } else {
+                            exit(0);
+                        }
+                    } else {        /*father*/
+                        waitpid(pid, &status, 0);
+                        __free_ptrstr__(cmd);
+                    }
                 }
             }
         }
