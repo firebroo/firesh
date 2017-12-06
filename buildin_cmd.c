@@ -5,18 +5,22 @@
 
 extern int running;
 extern struct passwd *pwd;
-char *build_cmds[] = {"cd", "exit", "pwd"};
 static void __exec_exit_cmd__(char **cmd);
 static void __exec_cd_cmd__(char **cmd);
 static void __exec_pwd_cmd__(char **cmd);
+CMD build_cmds[] = {
+    {"cd", __exec_cd_cmd__}, 
+    {"exit", __exec_exit_cmd__}, 
+    {"pwd", __exec_pwd_cmd__}
+};
 
 bool 
 is_buildin_cmd(char **cmd) 
 {
     int i;
-    int len = sizeof(build_cmds) / sizeof(char*);
+    int len = sizeof(build_cmds) / sizeof(CMD);
     for(i = 0; i < len; i++) { 
-        if (!strcmp(build_cmds[i], cmd[0])) {
+        if (!strcmp(build_cmds[i].name, cmd[0])) {
             return true;
         }
     }
@@ -72,12 +76,12 @@ __exec_cd_cmd__(char **cmd)
 void
 exec_buildin_cmd(char **cmd)
 {
-
-    if (!strcmp(cmd[0], "cd")) {
-        __exec_cd_cmd__(cmd);
-    } else if(!strcmp(cmd[0], "exit")) {
-        __exec_exit_cmd__(cmd);
-    } else if(!strcmp(cmd[0], "pwd")) {
-        __exec_pwd_cmd__(cmd);
+    int i;
+    int len = sizeof(build_cmds) / sizeof(CMD);
+    for(i = 0; i < len; i++) { 
+        if (!strcmp(build_cmds[i].name, cmd[0])) {
+            (build_cmds[i].func)(cmd);
+            return;
+        }
     }
 }
