@@ -1,9 +1,9 @@
+#include "path.h"
 #include "common.h"
-#include "buildin_cmd.h"
 #include "complet.h"
-#include "all_cmds.h"
+#include "buildin_cmd.h"
 
-extern char *all_cmds[];
+char **all_cmds, *ptr[100000] = {NULL};
 
 /* Tell the GNU Readline library how to complete.  We want to try to complete
    on command names if this is the first word in the line, or on filenames
@@ -11,11 +11,12 @@ extern char *all_cmds[];
 void 
 initialize_readline (void)
 {
-  /* Allow conditional parsing of the ~/.inputrc file. */
-  rl_readline_name = "firesh";
+    /* Allow conditional parsing of the ~/.inputrc file. */
+    rl_readline_name = "firesh";
+    all_cmds = get_executablefile(ptr);
 
-  /* Tell the completer that we want a crack first. */
-  rl_attempted_completion_function = fileman_completion;
+    /* Tell the completer that we want a crack first. */
+    rl_attempted_completion_function = fileman_completion;
 }
 
 /* Attempt to complete on the contents of TEXT.  START and END bound the
@@ -26,17 +27,17 @@ initialize_readline (void)
 char **
 fileman_completion (const char* text, int start, int end)
 {
-  char **matches;
+    char **matches;
 
-  matches = (char **)NULL;
+    matches = (char **)NULL;
 
-  /* If this word is at the start of the line, then it is a command
-     to complete.  Otherwise it is the name of a file in the current
-     directory. */
-  if (start == 0)
-    matches = rl_completion_matches (text, command_generator);
+    /* If this word is at the start of the line, then it is a command
+       to complete.  Otherwise it is the name of a file in the current
+       directory. */
+    if (start == 0)
+        matches = rl_completion_matches (text, command_generator);
 
-  return (matches);
+    return (matches);
 }
 
 /* Generator function for command completion.  STATE lets us know whether
@@ -45,26 +46,25 @@ fileman_completion (const char* text, int start, int end)
 char *
 command_generator (const char *text, int state)
 {
-  int list_index, len;
-  char *name;
+    int list_index, len;
+    char *name;
 
-  /* If this is a new word to complete, initialize now.  This includes
-     saving the length of TEXT for efficiency, and initializing the index
-     variable to 0. */
-  if (!state)
-    {
-      list_index = 0;
-      len = strlen (text);
+    /* If this is a new word to complete, initialize now.  This includes
+       saving the length of TEXT for efficiency, and initializing the index
+       variable to 0. */
+    if (!state) {
+        list_index = 0;
+        len = strlen (text);
     }
 
-  /* Return the next name which partially matches from the command list. */
-  while((name = all_cmds[list_index]) != NULL) {
-    list_index++;
+    /* Return the next name which partially matches from the command list. */
+    while((name = all_cmds[list_index]) != NULL) {
+        list_index++;
+        if (strncmp (name, text, len) == 0) {
+            return (strdup(name));
+        }
+    }
 
-      if (strncmp (name, text, len) == 0)
-        return (strdup(name));
-   }
-
-  /* If no names matched, then return NULL. */
-  return ((char *)NULL);
+    /* If no names matched, then return NULL. */
+    return ((char *)NULL);
 }
