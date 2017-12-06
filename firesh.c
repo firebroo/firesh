@@ -8,6 +8,7 @@
 extern char prompt[100];
 extern int sigwinch_received;
 extern int running;
+extern CMD build_cmds[];
 char split[] = {0x20, 0x09, '\0'};
 
 
@@ -18,7 +19,7 @@ char split[] = {0x20, 0x09, '\0'};
 bool
 check_argv (int argc, char *argv[])
 {
-    int    opt;
+    int    i, opt;
     int    cmd_ret;
     char **cmd = NULL;
     char *strptr[100];
@@ -27,7 +28,7 @@ check_argv (int argc, char *argv[])
         goto end;
     }
 
-    while((opt = getopt (argc, argv, ":c:")) != -1) {
+    while((opt = getopt (argc, argv, ":c:h")) != -1) {
         switch(opt) {
 
         case 'c':
@@ -37,6 +38,13 @@ check_argv (int argc, char *argv[])
                 printf("fish: %s: command not found", cmd[0]);
                 exit(0);
             }
+        case 'h':
+            printf("buildin cmds\n");
+            printf("-----------------------------------------\n");
+            while(build_cmds[i++].func != NULL) {
+                printf("%5s:%10s%s\n", build_cmds[i].name, " ", build_cmds[i].desc);
+            }
+            exit(0);
         default:
             goto end;
         }
@@ -70,23 +78,23 @@ main(int argc, char **argv)
     running = 1;
     while (running) {
         FD_ZERO(&fds);
-        FD_SET(fileno (rl_instream), &fds);    
+        FD_SET(fileno(rl_instream), &fds);    
 
         r = select(FD_SETSIZE, &fds, NULL, NULL, NULL);
         if(r < 0 && errno != EINTR) {
             perror("firesh: select");
-            rl_callback_handler_remove ();
+            rl_callback_handler_remove();
             break;
         }
         if(sigwinch_received) {
-            rl_resize_terminal ();
+            rl_resize_terminal();
             sigwinch_received = 0;
         }
         if(r < 0)
             continue;     
 
-        if(FD_ISSET(fileno (rl_instream), &fds))
-            rl_callback_read_char ();
+        if(FD_ISSET(fileno(rl_instream), &fds))
+            rl_callback_read_char();
     }
 
     return 0;
