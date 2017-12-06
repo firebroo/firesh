@@ -5,26 +5,29 @@
 
 extern int running;
 extern struct passwd *pwd;
+extern char prompt[100];
+
 static void __exec_exit_cmd__(char **cmd);
 static void __exec_cd_cmd__(char **cmd);
 static void __exec_pwd_cmd__(char **cmd);
 
 CMD build_cmds[] = {
-    {"cd", __exec_cd_cmd__, "change dir"}, 
+    {"cd",   __exec_cd_cmd__,   "change dir"}, 
     {"exit", __exec_exit_cmd__, "eixt shell"}, 
-    {"pwd", __exec_pwd_cmd__, "return current dir"},
-    {"", NULL, ""}
+    {"pwd",  __exec_pwd_cmd__,  "return current dir"},
+    {"",     NULL,              ""}
 };
 
 bool 
 is_buildin_cmd(char **cmd) 
 {
-    int i;
-    int len = sizeof(build_cmds) / sizeof(CMD);
-    for(i = 0; i < len; i++) { 
+    int i = 0;
+
+    while(build_cmds[i].func) {
         if (!strcmp(build_cmds[i].name, cmd[0])) {
             return true;
         }
+        i++;
     }
     return false;
 }
@@ -78,12 +81,13 @@ __exec_cd_cmd__(char **cmd)
 void
 exec_buildin_cmd(char **cmd)
 {
-    int i;
-    int len = sizeof(build_cmds) / sizeof(CMD);
-    for(i = 0; i < len; i++) { 
+    int i = 0;
+
+    while(build_cmds[i].func) {
         if (!strcmp(build_cmds[i].name, cmd[0])) {
             (build_cmds[i].func)(cmd);
             return;
         }
+        i++;
     }
 }

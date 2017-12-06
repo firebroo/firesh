@@ -1,21 +1,41 @@
 #include "common.h"
 #include "parse.h"
 #include "buildin_cmd.h"
+#include "hashtable.h"
 
 int sigintflag = 0;
 int running;
 int sigwinch_received;
-extern char prompt[100];
 int BGJOB = 0;
 
+extern HashTable *hashtable;
+extern char prompt[100];
+
+void 
+sig_chld(int sig)
+{
+    HashNode * node;
+    int  i, pid, status;
+    char pid_str[10];
+
+    i = 1;
+    while ((pid = (waitpid(-1, &status, 0))) != -1) {
+        sprintf(pid_str, "%d", pid);
+        node = (hash_table_lookup(hashtable, pid_str));
+        if (node) {
+            printf("[%d]+    Done%10s%s\n", i, " ", zStrValue(node));
+            fflush(stdout);
+            hash_table_remove(hashtable, pid_str);
+            reset_readline_callback();
+        }
+    }
+}
 
 /* Handle SIGWINCH and window size changes when readline is not active and
    reading a character. */
 void
 sighandler(int sig)
 {
-    int status;
-
     switch (sig) {
 
     case SIGWINCH:
@@ -27,9 +47,9 @@ sighandler(int sig)
         reset_readline_callback();
         break;
     case SIGCHLD:
-        while ((waitpid(-1, &status, WNOHANG)) > 0);
+        sig_chld(sig);
+        break;
     }
-
 }
 
 
@@ -89,7 +109,6 @@ cb_linehandler (char *line)
                     if (is_buildin_cmd(cmd)) {
                         exec_buildin_cmd(cmd);
                         __free_ptrstr__(cmd);
-                        printf("[1]: done\n");
                         exit(0);
                     } else {
                         if (execvp(cmd[0], cmd) == -1) {
@@ -99,6 +118,9 @@ cb_linehandler (char *line)
                         }
                     }
                 } else {
+                    char pid_str[10];
+                    sprintf(pid_str, "%d", pid);
+                    hash_table_insert(hashtable, pid_str, cmd[0]);
                     printf("[1]: %d\n", pid);
                     __free_ptrstr__(cmd);
                 }

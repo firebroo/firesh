@@ -4,13 +4,15 @@
 #include "firesh.h"
 #include "common.h"
 #include "complet.h"
+#include "hashtable.h"
 #include "buildin_cmd.h"
+
+char split[] = {0x20, 0x09, '\0'};
+HashTable *hashtable;
 
 extern char prompt[100];
 extern int sigwinch_received;
 extern int running;
-char split[] = {0x20, 0x09, '\0'};
-
 
 /* Callback function called for each line when accept-line executed, EOF
    seen, or EOF character read.  This sets a flag and returns; it could
@@ -58,6 +60,8 @@ main(int argc, char **argv)
     check_argv(argc, argv);
     setlocale(LC_ALL, "");
 
+    hashtable = malloc (sizeof (HashTable));
+    hash_table_init(hashtable);
     initialize_readline();
     signal(SIGWINCH, sighandler);
     signal(SIGINT, sighandler);

@@ -9,4 +9,3 @@ typedef struct cmd {
 } CMD;
 bool is_buildin_cmd(char **cmd);
 void exec_buildin_cmd(char **cmd);
-extern char prompt[100];

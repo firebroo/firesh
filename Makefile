@@ -1,6 +1,6 @@
 TARGET = firesh
 
-SRCS = help.c complet.c parse.c buildin_cmd.c common.c firesh.c prompt.c
+SRCS = hashtable.c help.c complet.c parse.c buildin_cmd.c common.c firesh.c prompt.c
 
 OBJS = $(SRCS:.c=.o)
 
