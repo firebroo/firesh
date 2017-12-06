@@ -1,14 +1,14 @@
+#include "help.h"
+#include "parse.h"
 #include "prompt.h"
 #include "firesh.h"
-#include "buildin_cmd.h"
 #include "common.h"
-#include "parse.h"
 #include "complet.h"
+#include "buildin_cmd.h"
 
 extern char prompt[100];
 extern int sigwinch_received;
 extern int running;
-extern CMD build_cmds[];
 char split[] = {0x20, 0x09, '\0'};
 
 
@@ -19,7 +19,7 @@ char split[] = {0x20, 0x09, '\0'};
 bool
 check_argv (int argc, char *argv[])
 {
-    int    i, opt;
+    int    opt;
     int    cmd_ret;
     char **cmd = NULL;
     char *strptr[100];
@@ -39,12 +39,7 @@ check_argv (int argc, char *argv[])
                 exit(0);
             }
         case 'h':
-            printf("buildin cmds\n");
-            printf("-----------------------------------------\n");
-            while(build_cmds[i++].func != NULL) {
-                printf("%5s:%10s%s\n", build_cmds[i].name, " ", build_cmds[i].desc);
-            }
-            exit(0);
+            help();
         default:
             goto end;
         }
@@ -66,7 +61,7 @@ main(int argc, char **argv)
     initialize_readline();
     signal(SIGWINCH, sighandler);
     signal(SIGINT, sighandler);
-    signal(SIGCHLD,sighandler);
+    signal(SIGCHLD, sighandler);
     /* Install the line handler. */
     type_prompt(prompt);
     rl_callback_handler_install(prompt, cb_linehandler);

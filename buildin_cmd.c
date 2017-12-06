@@ -8,10 +8,12 @@ extern struct passwd *pwd;
 static void __exec_exit_cmd__(char **cmd);
 static void __exec_cd_cmd__(char **cmd);
 static void __exec_pwd_cmd__(char **cmd);
+
 CMD build_cmds[] = {
-    {"cd", __exec_cd_cmd__}, 
-    {"exit", __exec_exit_cmd__}, 
-    {"pwd", __exec_pwd_cmd__}
+    {"cd", __exec_cd_cmd__, "change dir"}, 
+    {"exit", __exec_exit_cmd__, "eixt shell"}, 
+    {"pwd", __exec_pwd_cmd__, "return current dir"},
+    {"", NULL, ""}
 };
 
 bool 
