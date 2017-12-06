@@ -8,11 +8,14 @@ int sigwinch_received;
 extern char prompt[100];
 int BGJOB = 0;
 
+
 /* Handle SIGWINCH and window size changes when readline is not active and
    reading a character. */
 void
 sighandler(int sig)
 {
+    int status;
+
     switch (sig) {
 
     case SIGWINCH:
@@ -23,7 +26,10 @@ sighandler(int sig)
         fflush(stdout);
         reset_readline_callback();
         break;
+    case SIGCHLD:
+        while ((waitpid(-1, &status, WNOHANG)) > 0);
     }
+
 }
 
 
@@ -124,4 +130,3 @@ cb_linehandler (char *line)
 end:
     free(line);
 }
-

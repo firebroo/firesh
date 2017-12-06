@@ -58,6 +58,7 @@ main(int argc, char **argv)
     initialize_readline();
     signal(SIGWINCH, sighandler);
     signal(SIGINT, sighandler);
+    signal(SIGCHLD,sighandler);
     /* Install the line handler. */
     type_prompt(prompt);
     rl_callback_handler_install(prompt, cb_linehandler);
