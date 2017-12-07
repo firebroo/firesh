@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static char *path = "/usr/bin:/usr/local/bin";
+static char *path = "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin";
 
 char **
 get_executablefile(char **ptr) {
@@ -29,9 +29,9 @@ get_executablefile(char **ptr) {
             }
             closedir (dp);
         } else {
-            fprintf (stderr, "cannot open directory: %s\n",path);
+            fprintf (stderr, "cannot open directory: %s\n", p);
         }
-        p = strsep(&buff, " "); 
+        p = strsep(&buff, ":"); 
     }
 
     free(buff);

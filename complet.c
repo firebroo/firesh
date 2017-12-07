@@ -46,7 +46,7 @@ fileman_completion (const char* text, int start, int end)
 char *
 command_generator (const char *text, int state)
 {
-    int list_index, len;
+    static int list_index, len;
     char *name;
 
     /* If this is a new word to complete, initialize now.  This includes
