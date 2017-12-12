@@ -33,7 +33,7 @@ str_to_strptr(char *str, char **strptr)
     int i = 0;
     while(p && *p) {
         strptr[i++] = strdup(p);
-        p = strsep(&buff, " "); 
+        p = strsep(&buff, split); 
     }
     if (strcmp("&", strptr[i-1]) == 0) {
         BGJOB = 1;
