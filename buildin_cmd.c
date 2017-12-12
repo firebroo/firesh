@@ -10,12 +10,13 @@ extern char prompt[100];
 static void __exec_exit_cmd__(char **cmd);
 static void __exec_cd_cmd__(char **cmd);
 static void __exec_pwd_cmd__(char **cmd);
+static void __exec_cp_cmd__(char **cmd);
 
 CMD build_cmds[] = {
-    {"cd",   __exec_cd_cmd__,   "change dir"}, 
-    {"exit", __exec_exit_cmd__, "eixt shell"}, 
-    {"pwd",  __exec_pwd_cmd__,  "return current dir"},
-    {"",     NULL,              ""}
+    {"cd",            __exec_cd_cmd__,        "change dir"}, 
+    {"exit",          __exec_exit_cmd__,      "eixt shell"}, 
+    {"pwd",           __exec_pwd_cmd__,       "return current dir"},
+    {(char*)NULL,     (Func)NULL,             (char*)NULL} 
 };
 
 bool 
@@ -64,11 +65,7 @@ __exec_cd_cmd__(char **cmd)
     } else if(cmd[2] != NULL) {
         printf("firesh: %s: %s\n", cmd[0], "too many arguments");
     } else {
-        if (!strncmp(cmd[1], "~", strlen("~"))) {
-            sprintf(path, "%s%s", pwd->pw_dir, cmd[1]+strlen("~"));
-        } else {
-            sprintf(path, "%s", cmd[1]);
-        }
+        full_pathname(cmd[1], path);
         if (chdir(path) == -1) {
             printf("firesh: %s: %s: %s\n", cmd[0], path, strerror(errno));
         } else {
@@ -86,7 +83,7 @@ exec_buildin_cmd(char **cmd)
     while(build_cmds[i].func) {
         if (!strcmp(build_cmds[i].name, cmd[0])) {
             (build_cmds[i].func)(cmd);
-            return;
+            break;
         }
         i++;
     }

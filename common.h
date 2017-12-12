@@ -11,6 +11,7 @@
 #include <sys/select.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <pwd.h>
 
 #ifndef bool
 #   define bool           unsigned char
@@ -26,3 +27,4 @@
 
 char *trim(char *data, char c);
 char **str_to_strptr(char *str, char **strptr);
+char *full_pathname(char *file, char *pathname);

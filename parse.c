@@ -28,6 +28,7 @@ sig_chld(int sig)
             hash_table_remove(hashtable, pid_str);
             reset_readline_callback();
         }
+        i++;
     }
 }
 
@@ -74,8 +75,8 @@ __cmd_error__(char **cmd, char* error)
 void
 reset_readline_callback()
 {
-    rl_callback_handler_remove ();
-    rl_callback_handler_install (prompt, cb_linehandler);
+    rl_callback_handler_remove();
+    rl_callback_handler_install(prompt, cb_linehandler);
 }
 
 
